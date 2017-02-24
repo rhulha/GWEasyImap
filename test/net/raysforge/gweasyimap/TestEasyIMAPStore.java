@@ -2,14 +2,13 @@ package net.raysforge.gweasyimap;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Properties;
+import java.security.GeneralSecurityException;
 
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Session;
 import javax.mail.internet.MimeMessage.RecipientType;
 import javax.mail.search.FlagTerm;
 
@@ -18,13 +17,10 @@ import com.sun.mail.imap.IMAPMessage;
 
 public class TestEasyIMAPStore {
 
-	public static void main(String[] args) throws MessagingException, IOException {
+	public static void main(String[] args) throws MessagingException, IOException, GeneralSecurityException {
 		Configuration cfg = new Configuration(new FileInputStream("test.conf"));
 
-		Properties props = new Properties();
-		Session session = Session.getDefaultInstance(props);
-
-		EasyIMAPStore is = new EasyIMAPStore(session, cfg.imap_protocol, cfg.imap_server, Integer.parseInt(cfg.imap_port), cfg.imap_tapp_name, cfg.imap_tapp_key, "check");
+		EasyIMAPStore is = EasyIMAPStore.getAllServerTrusting(cfg.imap_protocol, cfg.imap_server, Integer.parseInt(cfg.imap_port), cfg.imap_tapp_name, cfg.imap_tapp_key, "info");
 
 
 		IMAPFolder folder = (IMAPFolder) is.getFolder("INBOX");

@@ -22,8 +22,26 @@ public class EasyIMAPStore extends IMAPStore {
 	private String tappKey;
 	private String username;
 
-	public EasyIMAPStore(String protocol, String server, int port, String tappName, String tappKey, String username) throws MessagingException {
-		this(Session.getDefaultInstance(new Properties()), protocol, server, port, tappName, tappKey, username);
+	public static EasyIMAPStore getAllServerTrusting(String protocol, String server, int port, String tappName, String tappKey, String username) throws MessagingException {
+		Properties properties = new Properties();
+		properties.put("mail.imaps.ssl.trust", "*");
+		properties.put("mail.imaps.ssl.checkserveridentity", "false");
+
+		/*
+		 * properties.put("mail.imaps.ssl.socketFactory", new MailSSLSocketFactory(){{
+		 * this.setTrustAllHosts(true); }});
+		 * 
+		 */
+
+		/*
+		 * try { properties.put("mail.imaps.ssl.socketFactory",
+		 * HttpsUtils.getAllTrustingSSLSocketFactory()); } catch (Exception e) {
+		 * e.printStackTrace(); }
+		 */
+
+		Session session = Session.getDefaultInstance(properties);
+
+		return new EasyIMAPStore(session, protocol, server, port, tappName, tappKey, username);
 	}
 
 	public EasyIMAPStore(Session session, String protocol, String server, int port, String tappName, String tappKey, String username) throws MessagingException {
@@ -50,19 +68,19 @@ public class EasyIMAPStore extends IMAPStore {
 				method.setAccessible(true);
 				OutputStream os = (OutputStream) method.invoke(ip);
 				byte[] cmd = TrustedApp.getCommandAndBase64ofNameAndKey(tappName, tappKey);
-				System.out.println(new String(cmd));
+				// System.out.println(new String(cmd));
 				os.write(cmd);
 				os.flush();
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				e.printStackTrace();
 			}
-			
+
 			response = ip.readResponse();
 			if (!response.isOK())
 				throw new ProtocolException(response);
-			
+
 			ip.login(username, "");
-			
+
 		} catch (IOException e) {
 			throw new ProtocolException(e.getMessage(), e);
 		}
